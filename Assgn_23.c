@@ -11,8 +11,9 @@
 #include <string.h>
 #include <time.h>
 
-void redirect(char* flc);
-void findredirect(char* flc);
+void redirect();
+void findredirect();
+void getLogo();
 
 char redlink[1024]={'\0'};
 //char host[1024];
@@ -21,8 +22,10 @@ char* port;
 char* login;
 char* password;
 char* flc;
+char* fltext = "dummy.txt";
 char* logofl;
 char req[1024];
+char logourl[1024];
 //char* req;
 //http://www.google.com
 //http://bits-pilani.ac.in
@@ -178,7 +181,7 @@ int reqprocess(char* host,char fconn[1024])
     printf("REQUEST SENT\n");
     printf("%s\n",req);
 
-    FILE *fl = fopen(flc, "w+");
+    FILE *fl = fopen(fltext, "w+");
     int downloadtrack = recv(socksuccess,recbuff,sizeof(recbuff),0);
     for(;downloadtrack>0;)
     {
@@ -190,7 +193,16 @@ int reqprocess(char* host,char fconn[1024])
     printf("\n");
     fclose(fl);
     close(socksuccess);
-    redirect(flc);
+    
+    redirect();
+    if(strstr("http://info.in2p3.fr/",host)!=NULL)
+    {
+        getLogo();
+        //strcat(host,"/");
+        strcat(host,logourl);
+        strcat(host,"/");
+        //reqprocess(host,"\0");
+    }
     /*if(redlink[0]=='\0')
     printf("NULL MILA");
     else
@@ -205,6 +217,38 @@ int reqprocess(char* host,char fconn[1024])
         }
         reqprocess();
     }*/
+
+}
+
+void getLogo()
+{
+    FILE* fl = fopen(flc,"r");
+    char buff[1024*60];
+    char* tagcheck = "<IMG SRC=";
+    char* pos;
+    int counter=0;
+    while(fgets(buff,1024*60,fl) != NULL)
+    {
+        pos = strstr(buff,tagcheck);
+        if(pos!=NULL)
+        {
+            int offset = strlen(tagcheck);
+            pos+=offset;
+            while(*pos!='\"')
+            pos++;
+            pos++;
+            while(*pos!='\"')
+            {
+                logourl[counter++] = *pos;
+                pos++;
+            }
+            logourl[counter++] = '\0';
+            printf("%s\n",logourl);
+            //return logourl;
+            
+        }
+    }
+    fclose(fl);
 
 }
 
@@ -271,9 +315,9 @@ int main(int argc, char *argv[])
 
 }
 
-void redirect(char* flc)
+void redirect()
 {
-    FILE* fl = fopen(flc,"r");
+    FILE* fl = fopen(fltext,"r");
     char c;
     char str[4]={'0'};
     int check,counter=0;
@@ -297,15 +341,15 @@ void redirect(char* flc)
     {
         printf("Resource has been moved permanently\nSending req to given moved location\n");
         fclose(fl);
-        findredirect(flc);
+        findredirect();
         //return &redlink;
     }
     //return NULL;
 }
 
-void findredirect(char* flc)
+void findredirect()
 {
-    FILE* fl = fopen(flc,"r");
+    FILE* fl = fopen(fltext,"r");
     char loc[] = "Location: ";
     int offset = strlen(loc);
     char* pos;
@@ -335,5 +379,6 @@ void findredirect(char* flc)
             //return &redlink;
         }
     }
+    fclose(fl);
     //return NULL;
 }
