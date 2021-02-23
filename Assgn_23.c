@@ -312,22 +312,26 @@ void findredirect(char* flc)
     char buff[1024*50];
     //char* redlink;
     memset(redlink,'\0',sizeof(redlink));
+    int counter=0;
     while(fgets(buff,1024*60,fl) != NULL)
     {
         pos = strstr(buff,loc);
         if(pos != NULL)
         {
             pos+=offset;
-            while(*pos!=' ' && *pos!='\n')
+            while(*pos!=' ' && *pos!='\n' && *pos!='\r')
             {
-                strncat(redlink, pos, 1);
+                redlink[counter++] = *pos;
+                //strncat(redlink, pos, 1);
                 pos++;
             }
+            redlink[counter++] = '\0';
             printf("%s\n",redlink);
             printf("%d\n",strlen(redlink));
             fflush(stdout);
+            char* ptr = redlink;
             if(redlink[0]!='\0')
-            reqprocess(redlink,"\0");
+            reqprocess(ptr,"\0");
             //return &redlink;
         }
     }
